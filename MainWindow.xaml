@@ -5,8 +5,128 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:CircuitPro"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="CircuitPro" Height="600" Width="1000">
+    <Window.CommandBindings>
+        <CommandBinding Command="New" CanExecute="CommandBinding_CanExecute" />
+        <CommandBinding Command="Open" CanExecute="CommandBinding_CanExecute" />
+        <CommandBinding Command="Save" CanExecute="CommandBinding_CanExecute" />
+    </Window.CommandBindings>
+    <Window.Resources>
+        <Style TargetType="{x:Type TreeView}">
+            <Style.Resources>
+                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="#CBE8F6" />
+                <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="#F6F6F6" />
+                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrushKey}" Color="Black" />
+                <SolidColorBrush x:Key="{x:Static SystemColors.ControlTextBrushKey}" Color="Black" />
+            </Style.Resources>
+        </Style>
+        <Style TargetType="{x:Type TreeViewItem}">
+            <Setter Property="BorderThickness" Value="1" />
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="BorderBrush" Value="#26A0DA" />
+                </Trigger>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#E5F3FB" />
+                    <Setter Property="BorderBrush" Value="#70C0E7" />
+                </Trigger>
+                <MultiTrigger>
+                    <MultiTrigger.Conditions>
+                        <Condition Property="IsSelected" Value="True" />
+                        <Condition Property="IsSelectionActive" Value="False" />
+                    </MultiTrigger.Conditions>
+                    <Setter Property="BorderBrush" Value="#DADADA" />
+                </MultiTrigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
     <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="100*"/>
+            <ColumnDefinition Width="400*"/>
+            <ColumnDefinition Width="100*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30"/>
+            <RowDefinition Height="80*"/>
+            <RowDefinition Height="15*"/>
+        </Grid.RowDefinitions>
+        <ToolBarTray x:Name="Menu" Orientation="Horizontal" Grid.ColumnSpan="3">
+            <ToolBar Height="30" ClipToBounds="True" Visibility="Visible">
+                <Button Command="New" Content="Fișier Nou" Margin="5,0,5,0" />
+                <Button Command="Open" Content="Deschide" Margin="5,0,5,0" />
+                <Button Command="Save" Content="Salvează" Margin="5,0,5,0" />
+            </ToolBar>
+            <ToolBar Height="30" ClipToBounds="True" Visibility="Visible">
+                <Button Content="Component nou" Margin="5,0,5,0" />
+            </ToolBar>
+            <ToolBar Height="30" ClipToBounds="True" Visibility="Visible">
+                <Button Content="Ajutor" Margin="5,0,5,0" />
+                <Button Content="Despre" Margin="5,0,5,0" />
+            </ToolBar>
+        </ToolBarTray>
+        <GroupBox x:Name="Content" Header="Diagramă circuit" Grid.Column="1" Grid.Row="1" Margin="5,0,5,0" Padding="-5,-7,-5,-5" UseLayoutRounding="False" ScrollViewer.VerticalScrollBarVisibility="Disabled">
+            <ScrollViewer x:Name="canvasScroll" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                <Canvas x:Name="circuitCanvas" MouseWheel="circuitCanvas_MouseWheel" MinWidth="500" MinHeight="500">
+                    <Canvas.Background>
+                        <DrawingBrush TileMode="Tile" Viewport="0, 0,20,20" ViewportUnits="Absolute">
+                            <DrawingBrush.Drawing>
+                                <GeometryDrawing>
+                                    <GeometryDrawing.Geometry>
+                                        <RectangleGeometry Rect="0,0,20,20"/>
+                                    </GeometryDrawing.Geometry>
+                                    <GeometryDrawing.Pen>
+                                        <Pen Brush="Gray" Thickness="0.05"/>
+                                    </GeometryDrawing.Pen>
+                                </GeometryDrawing>
+                            </DrawingBrush.Drawing>
+                        </DrawingBrush>
+                    </Canvas.Background>
+                </Canvas>
+            </ScrollViewer>
+        </GroupBox>
+        <GroupBox x:Name="ComponentList" Header="Componente" Grid.Row="1" Grid.RowSpan="2" Margin="5 0 0 5">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition Height="50"/>
+                </Grid.RowDefinitions>
+                <ListBox x:Name="componentList" BorderThickness="0,0,0,0" MouseDown="ListBox_MouseDown">
+                    <ListViewItem Content="Hello"></ListViewItem>
+                </ListBox>
+                <StackPanel Grid.Row="1" Orientation="Vertical" VerticalAlignment="Center" HorizontalAlignment="Stretch">
+                    <Button Content="Adaugă" Margin="0,5,0,0"/>
+                    <Button Content="Șterge" Margin="0,5,0,0"/>
+                </StackPanel>
+            </Grid>
+        </GroupBox>
+        <GroupBox x:Name="Entry" Grid.Column="1" Grid.Row="2" Header="Descriere ciruit" Margin="5,5,5,5">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="32*"/>
+                    <RowDefinition Height="32*"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition Width="80"/>
+                </Grid.ColumnDefinitions>
+                <TextBox Text="TextBox" TextWrapping="Wrap" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" FlowDirection="LeftToRight" UseLayoutRounding="False" Grid.RowSpan="2"/>
+                <Button Content="Actualizează" Grid.Column="1" Margin="5,0,0,2" VerticalAlignment="Stretch"/>
+                <Button Content="Resetează" Margin="5,2,0,0" Grid.ColumnSpan="2" Grid.Row="1" Grid.Column="1" VerticalAlignment="Stretch"/>
+            </Grid>
+
+        </GroupBox>
+        <GroupBox x:Name="Properties" Grid.Column="2" Header="Detalii" Grid.Row="2" Margin="0,0,5,5">
+            <TextBlock HorizontalAlignment="Left" Margin="720,0,0,0" Text="TextBlock" TextWrapping="Wrap" VerticalAlignment="Top"/>
+        </GroupBox>
+        <GroupBox x:Name="TreeView" Grid.Column="2" Header="Porțiuni circuit" Grid.Row="1" Margin="0,0,5,0">
+            <TreeView x:Name="circuitTree" HorizontalContentAlignment="Left" BorderThickness="0,0,0,0" MouseDown="TreeView_MouseDown">
+                <TreeViewItem Header="Hello" Padding="0,0,0,0">
+                    <TreeViewItem Header="Hi"></TreeViewItem>
+                </TreeViewItem>
+            </TreeView>
+        </GroupBox>
+
 
     </Grid>
 </Window>
