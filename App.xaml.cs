@@ -13,5 +13,10 @@ namespace CircuitPro
     /// </summary>
     public partial class App : Application
     {
+        public CircuitModel.Circuit circuit;
+        private void Application_Startup(object sender, StartupEventArgs e)
+        {
+            circuit = new CircuitModel.Circuit();
+        }
     }
 }
