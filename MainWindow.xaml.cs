@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -12,6 +10,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+
+using CircuitPro.CircuitModel;
 
 namespace CircuitPro
 {
@@ -32,10 +32,36 @@ namespace CircuitPro
 
             // setare scale transform (zoom canvas)
             circuitCanvas.LayoutTransform = st = new ScaleTransform();
+
+            // desenare initiala
+            UpdateComponentListView();
+            UpdateCircuitView();
+        }
+
+        private Circuit GetCircuit()
+        {
+            return ((App)Application.Current).circuit;
+        }
+
+        private void UpdateComponentListView()
+        {
+            componentList.ItemsSource = GetCircuit().componente.ToList<KeyValuePair<string, Component>>();
+        }
+
+        private void UpdateCircuitView()
+        {
+            // resetare interfata
+            circuitCanvas.Children.Clear();
+            circuitTree.Items.Clear();
+
+            // redesenare componente
+            GetCircuit().Desenare(circuitCanvas);
+            circuitTree.Items.Add(GetCircuit().GetComponentTree());
         }
 
         private void CommandBinding_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
+            // activeaza butoanele din toolbar
             e.CanExecute = true;
         }
 
@@ -65,7 +91,7 @@ namespace CircuitPro
             }
         }
 
-        private void circuitCanvas_MouseWheel(object sender, MouseWheelEventArgs e)
+        private void CircuitCanvas_MouseWheel(object sender, MouseWheelEventArgs e)
         {
             // actualizare zoom
             zoom += e.Delta * 0.001;
@@ -86,6 +112,65 @@ namespace CircuitPro
 
             // declarare eveniment ca gestionat
             e.Handled = true;
+        }
+
+        private void AddComponentBtn_Click(object sender, RoutedEventArgs e)
+        {
+            // creare dialog
+            AddComponentDialog dialog = new AddComponentDialog();
+            if (dialog.ShowDialog() == true)
+            {
+                // preluare date si creare component
+                Component c = null;
+                Circuit circ = ((App)Application.Current).circuit;
+                switch (dialog.Tip)
+                {
+                    case TipComponent.REZISTENTA:
+                        c = new Rezistenta(dialog.Nume, dialog.Valoare);
+                        break;
+
+                    case TipComponent.CONDENSATOR:
+                        c = new Condensator(dialog.Nume, dialog.Valoare, circ.Frecventa);
+                        break;
+
+                    case TipComponent.BOBINA:
+                        c = new Bobina(dialog.Nume, dialog.Valoare, circ.Frecventa);
+                        break;
+                }
+
+                // adaugare component in lista
+                circ.AddComponent(c);
+                UpdateComponentListView();
+            };
+        }
+
+        private void RemoveComponentBtn_Click(object sender, RoutedEventArgs e)
+        {
+            // sterge element selectat (daca exista)
+            if (componentList.SelectedItem == null)
+                return;
+
+            KeyValuePair<string, Component> sel = (KeyValuePair<string, Component>)componentList.SelectedItem;
+            GetCircuit().componente.Remove(sel.Key);
+            UpdateComponentListView();
+        }
+
+        private void UpdateCircuitBtn_Click(object sender, RoutedEventArgs e)
+        {
+            // actualizare circuit in functie de input utilizator
+            if (DescriereCircutText.Text == "")
+                return;
+
+            GetCircuit().SetCircuit(DescriereCircutText.Text);
+            UpdateCircuitView();
+        }
+
+        private void ResetCircuitBtn_Click(object sender, RoutedEventArgs e)
+        {
+            // reseteaza circuit
+            GetCircuit().SetCircuit("");
+            DescriereCircutText.Text = "";
+            UpdateCircuitView();
         }
     }
 }

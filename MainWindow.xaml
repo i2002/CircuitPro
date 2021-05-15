@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:CircuitPro"
+        xmlns:model="clr-namespace:CircuitPro.CircuitModel"
         mc:Ignorable="d"
         Title="CircuitPro" Height="600" Width="1000">
     <Window.CommandBindings>
@@ -56,18 +57,16 @@
                 <Button Command="New" Content="Fișier Nou" Margin="5,0,5,0" />
                 <Button Command="Open" Content="Deschide" Margin="5,0,5,0" />
                 <Button Command="Save" Content="Salvează" Margin="5,0,5,0" />
-            </ToolBar>
-            <ToolBar Height="30" ClipToBounds="True" Visibility="Visible">
+                <Separator />
                 <Button Content="Component nou" Margin="5,0,5,0" />
-            </ToolBar>
-            <ToolBar Height="30" ClipToBounds="True" Visibility="Visible">
+                <Separator />
                 <Button Content="Ajutor" Margin="5,0,5,0" />
                 <Button Content="Despre" Margin="5,0,5,0" />
             </ToolBar>
         </ToolBarTray>
-        <GroupBox x:Name="Content" Header="Diagramă circuit" Grid.Column="1" Grid.Row="1" Margin="5,0,5,0" Padding="-5,-7,-5,-5" UseLayoutRounding="False" ScrollViewer.VerticalScrollBarVisibility="Disabled">
+        <GroupBox x:Name="Draw" Header="Diagramă circuit" Grid.Column="1" Grid.Row="1" Margin="5,0,5,0" Padding="-5,-7,-5,-5" UseLayoutRounding="False" ScrollViewer.VerticalScrollBarVisibility="Disabled">
             <ScrollViewer x:Name="canvasScroll" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                <Canvas x:Name="circuitCanvas" MouseWheel="circuitCanvas_MouseWheel" MinWidth="500" MinHeight="500">
+                <Canvas x:Name="circuitCanvas" MouseWheel="CircuitCanvas_MouseWheel" MinWidth="500" MinHeight="500">
                     <Canvas.Background>
                         <DrawingBrush TileMode="Tile" Viewport="0, 0,20,20" ViewportUnits="Absolute">
                             <DrawingBrush.Drawing>
@@ -92,11 +91,15 @@
                     <RowDefinition Height="50"/>
                 </Grid.RowDefinitions>
                 <ListBox x:Name="componentList" BorderThickness="0,0,0,0" MouseDown="ListBox_MouseDown">
-                    <ListViewItem Content="Hello"></ListViewItem>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Value.Nume}"/>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
                 </ListBox>
                 <StackPanel Grid.Row="1" Orientation="Vertical" VerticalAlignment="Center" HorizontalAlignment="Stretch">
-                    <Button Content="Adaugă" Margin="0,5,0,0"/>
-                    <Button Content="Șterge" Margin="0,5,0,0"/>
+                    <Button x:Name="AddComponentBtn" Content="Adaugă" Margin="0,5,0,0" Click="AddComponentBtn_Click"/>
+                    <Button x:Name="RemoveComponentBtn" Content="Șterge" Margin="0,5,0,0" Click="RemoveComponentBtn_Click"/>
                 </StackPanel>
             </Grid>
         </GroupBox>
@@ -110,9 +113,9 @@
                     <ColumnDefinition/>
                     <ColumnDefinition Width="80"/>
                 </Grid.ColumnDefinitions>
-                <TextBox Text="TextBox" TextWrapping="Wrap" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" FlowDirection="LeftToRight" UseLayoutRounding="False" Grid.RowSpan="2"/>
-                <Button Content="Actualizează" Grid.Column="1" Margin="5,0,0,2" VerticalAlignment="Stretch"/>
-                <Button Content="Resetează" Margin="5,2,0,0" Grid.ColumnSpan="2" Grid.Row="1" Grid.Column="1" VerticalAlignment="Stretch"/>
+                <TextBox x:Name="DescriereCircutText" TextWrapping="Wrap" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" FlowDirection="LeftToRight" UseLayoutRounding="False" Grid.RowSpan="2"/>
+                <Button x:Name="UpdateCircuitBtn" Content="Actualizează" Grid.Column="1" Margin="5,0,0,2" VerticalAlignment="Stretch" Click="UpdateCircuitBtn_Click"/>
+                <Button x:Name="ResetCircuitBtn" Content="Resetează" Margin="5,2,0,0" Grid.ColumnSpan="2" Grid.Row="1" Grid.Column="1" VerticalAlignment="Stretch" Click="ResetCircuitBtn_Click"/>
             </Grid>
 
         </GroupBox>
@@ -121,9 +124,11 @@
         </GroupBox>
         <GroupBox x:Name="TreeView" Grid.Column="2" Header="Porțiuni circuit" Grid.Row="1" Margin="0,0,5,0">
             <TreeView x:Name="circuitTree" HorizontalContentAlignment="Left" BorderThickness="0,0,0,0" MouseDown="TreeView_MouseDown">
-                <TreeViewItem Header="Hello" Padding="0,0,0,0">
-                    <TreeViewItem Header="Hi"></TreeViewItem>
-                </TreeViewItem>
+                <TreeView.ItemTemplate>
+                    <HierarchicalDataTemplate DataType="x:Type model:ComponentTreeItem" ItemsSource="{Binding Items}">
+                        <TextBlock Text="{Binding Title}"/>
+                    </HierarchicalDataTemplate>
+                </TreeView.ItemTemplate>
             </TreeView>
         </GroupBox>
 
