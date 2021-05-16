@@ -2,11 +2,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Text.RegularExpressions;
-using System.Windows.Controls;
+using System.IO;
+using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
+using System.Windows;
+using System.Windows.Controls;
 
 namespace CircuitPro.CircuitModel
 {
@@ -24,15 +25,13 @@ namespace CircuitPro.CircuitModel
             {
                 descriere = value;
                 SetCircuit(value);
+                GetApp().SetModificat();
             }
         }
 
         public double Frecventa
         {
-            get
-            {
-                return g.Frecventa;
-            }
+            get => g.Frecventa;
             set
             {
                 g.SetFrecventa(value);
@@ -40,6 +39,7 @@ namespace CircuitPro.CircuitModel
                 {
                     circ.SetFrecventa(value);
                 }
+                GetApp().SetModificat();
             }
         }
 
@@ -53,44 +53,99 @@ namespace CircuitPro.CircuitModel
                 {
                     circ.SetTensiune(value);
                 }
+                GetApp().SetModificat();
             }
         }
 
         public Circuit(double tensiune = 120, double frecventa = 50, List<Component> comp = null, string desc = "")
         {
-            // initializare date
+            // initializare generator
             g = new Generator(frecventa, tensiune);
             
+            // initializare componente
             componente = new Dictionary<string, Component>();
             if(comp != null)
             {
-                comp.ForEach(c => AddComponent(c));
+                comp.ForEach(c => componente.Add(c.Nume, c));
             }
             
+            // initializare descriere
             Descriere = desc;
-
-/*            componente.Add("R1", new Rezistenta("R1", 20));
-            componente.Add("R2", new Rezistenta("R2", 30));
-            componente.Add("R3", new Rezistenta("R3", 40));
-
-            componente.Add("C1", new Condensator("C1", 10));
-            componente.Add("C2", new Condensator("C2", 20));
-            componente.Add("C3", new Condensator("C3", 30));
-
-            componente.Add("B1", new Bobina("B1", 10));
-            componente.Add("B2", new Bobina("B2", 20));
-            componente.Add("B3", new Bobina("B3", 40));*/
-
-            /*circ = ((componente["R1"] + componente["C2"]) * componente["B2"]) + componente["R1"];*/
-            //SetCircuit("R1+((R1+R2)*R3*(C3*(R1+R2)*C2+B1))+C1");
-            /*Descriere = "R1+((R1+R2)*R3*(C3*(R1+R2)*C2+B1))+C1";*/
         }
 
-        public Circuit(CircuitSerialize s) : this(s.Tensiune, s.Frecventa, s.Componente, s.Descriere) { }
-
-        public CircuitSerialize Serialize()
+        public string Serialize()
         {
-            return CircuitSerialize{ Descriere = descriere, Frecventa = g.Frecventa, Tensiune = g.Tensiune, Componente = componente.Keys.ToList()}
+            // initializare obiect
+            using MemoryStream stream = new MemoryStream();
+            using Utf8JsonWriter writer = new Utf8JsonWriter(stream, new JsonWriterOptions { Indented = true });
+            writer.WriteStartObject();
+
+            // scriere informatii circuit
+            writer.WriteNumber("Frecventa", Frecventa);
+            writer.WriteNumber("Tensiune", Tensiune);
+            writer.WriteString("Descriere", Descriere);
+
+            // adaugare componente
+            writer.WriteStartArray("Componente");
+            foreach (string key in componente.Keys)
+            {
+                // preluare date component
+                Component elem = componente[key];
+                double valoare = elem.Tip switch
+                {
+                    TipComponent.BOBINA => ((Bobina)elem).Inductanta,
+                    TipComponent.CONDENSATOR => ((Condensator)elem).Capacitate,
+                    _ => elem.Reactanta
+                };
+
+                // scriere obiect component
+                writer.WriteStartObject();
+                writer.WriteNumber("Tip", (int)elem.Tip);
+                writer.WriteString("Nume", elem.Nume);
+                writer.WriteNumber("Valoare", valoare);
+                writer.WriteEndObject();
+            }
+
+            // inchieiere obiect
+            writer.WriteEndArray();
+            writer.WriteEndObject();
+
+            // transformare in string
+            writer.Flush();
+            return Encoding.UTF8.GetString(stream.ToArray());
+        }
+
+        public static Circuit Deserialize(string json)
+        {
+            // pregatire document
+            using JsonDocument document = JsonDocument.Parse(json);
+            JsonElement root = document.RootElement;
+            JsonElement componentsElement = root.GetProperty("Componente");
+            int count = componentsElement.GetArrayLength();
+
+            // citire informatii circuit
+            double frecventa = root.GetProperty("Frecventa").GetDouble();
+            double tensiune = root.GetProperty("Tensiune").GetDouble();
+            string descriere = root.GetProperty("Descriere").GetString();
+
+            // adaugare componente
+            List<Component> c = new List<Component>();
+            foreach (JsonElement comp in componentsElement.EnumerateArray())
+            {
+                int tip = comp.GetProperty("Tip").GetInt32();
+                string nume = comp.GetProperty("Nume").GetString();
+                double valoare = comp.GetProperty("Valoare").GetDouble();
+                c.Add((TipComponent)tip switch
+                {
+                    TipComponent.REZISTENTA => new Rezistenta(nume, valoare),
+                    TipComponent.BOBINA => new Bobina(nume, valoare),
+                    TipComponent.CONDENSATOR => new Condensator(nume, valoare),
+                    _ => null
+                });
+            }
+
+            // creare circuit nou
+            return new Circuit(tensiune, frecventa, c, descriere);
         }
 
         public void AddComponent(Component c)
@@ -106,6 +161,7 @@ namespace CircuitPro.CircuitModel
             }
 
             componente.Add(c.Nume, c);
+            GetApp().SetModificat();
         }
 
         public ComponentTreeItem GetComponentTree()
@@ -245,13 +301,10 @@ namespace CircuitPro.CircuitModel
             // setare dimensiune interna
             ComponentDraw.SetCanvasSize(canvas, w, h);
         }
-    }
 
-    public class CircuitSerialize
-    {
-        public List<Component> Componente { get; set; }
-        public double Frecventa { get; set; }
-        public double Tensiune { get; set; }
-        public string Descriere { get; set; }
+        private App GetApp()
+        {
+            return (App)Application.Current;
+        }
     }
 }
