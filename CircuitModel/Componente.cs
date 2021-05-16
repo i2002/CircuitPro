@@ -1,10 +1,68 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Windows.Controls;
 
 namespace CircuitPro.CircuitModel
 {
+    /// <summary>
+    /// Element arbore componente circuit
+    /// </summary>
+    public class ComponentTreeItem : TreeViewItem 
+    {
+        public string Id { get; protected set; }
+
+        public Component component { get; protected set; }
+
+
+        /// <summary>
+        /// Element arbore componente circuit
+        /// </summary>
+        /// <param name="nume">Numele afisat</param>
+        /// <param name="c">Referinta catre component</param>
+        /// <param name="id">Id-ul componentului</param>
+        public ComponentTreeItem(string nume, Component c, string id)
+        {
+            Header = nume;
+            Id = id;
+            component = c;
+        }
+
+        /// <summary>
+        /// Actualizare selectie arbore elemente
+        /// </summary>
+        /// <param name="id">Id-ul elementului selectat</param>
+        /// <returns>true daca unul din descendentii elementului este selectat, false altfel</returns>
+        public bool SetSelected(string id)
+        {
+            // selectare daca element selectat
+            IsSelected = id == Id;
+
+            // evaluare descendenti
+            bool sel = false;
+            foreach(ComponentTreeItem item in Items)
+            {
+                bool res = item.SetSelected(id);
+                sel = sel || res;
+            }
+
+            // expandare daca unul din descendenti este selectat
+            if (sel || IsSelected)
+            {
+                IsExpanded = true;
+            }
+            else
+            {
+                IsExpanded = false;
+            }
+
+            return sel || IsSelected;
+        }
+    }
+
+
+    /// <summary>
+    /// Tipuri component
+    /// </summary>
     public enum TipComponent
     {
         GENERATOR,
@@ -15,40 +73,27 @@ namespace CircuitPro.CircuitModel
         PARALEL
     }
 
-    public class ComponentTreeItem
-    {
-        public ComponentTreeItem(string title, Component c)
-        {
-            Title = title;
-            Items = new ObservableCollection<ComponentTreeItem>();
-            component = c;
-        }
 
-        public string Title { get; set; }
-
-        public Component component { get; protected set; }
-
-        public ObservableCollection<ComponentTreeItem> Items { get; set; }
-    }
-
+    /// <summary>
+    /// Reprezentarea unui component al circuitului
+    /// </summary>
     public abstract class Component
     {
-        public double Reactanta { get; protected set; }
-
-        public double Defazaj { get; protected set; }
-
-        public double Intensitate { get; protected set; }
-
-        public double Tensiune { get; protected set; }
-
+        /// <summary>
+        /// Date component
+        /// </summary>
         public string Nume { get; protected set; }
 
         public TipComponent Tip { get; protected set; }
 
-        public int Height { get; protected set; }
-        public int Width { get; protected set; }
-        public int Row { get; protected set; }
-        public int Column { get; protected set; }
+        public double Reactanta { get; protected set; }
+
+        public double Defazaj { get; protected set; }
+
+        public double Tensiune { get; protected set; }
+
+        public double Intensitate { get; protected set; }
+
 
         /// <summary>
         /// Component circuit
@@ -64,18 +109,66 @@ namespace CircuitPro.CircuitModel
             Defazaj = defazaj;
         }
 
-        public abstract (int w, int h) Desenare(int row, int column, Canvas canvas);
-
-        public virtual ComponentTreeItem GetTree()
+        /// <summary>
+        /// Creaza o clona a componentului
+        /// </summary>
+        /// <returns>Noua instanta a clasei cu aceleasi date</returns>
+        public virtual Component Clone()
         {
-            return new ComponentTreeItem(Nume, this);
+            return null;
+        }
+        /// <summary>
+        /// Desenare component
+        /// </summary>
+        /// <param name="row">Pozitie rand</param>
+        /// <param name="column">Pozitie coloana</param>
+        /// <param name="canvas">Canvas-ul pe care este desenat</param>
+        /// <param name="id">Id-ul elementului desenat</param>
+        /// <returns>Dimensiunile (cate coloane si cate randuri) ocupa elementul desenat</returns>
+        public abstract (int w, int h) Desenare(int row, int column, Canvas canvas, string id = "");
+
+        /// <summary>
+        /// Construire arbore elemente pentru tree view
+        /// </summary>
+        /// <param name="id">Id-ul elementului curent</param>
+        /// <returns></returns>
+        public virtual ComponentTreeItem GetTree(string id = "")
+        {
+            return new ComponentTreeItem(Nume, this, id);
         }
 
+        // operatii
+        /// <summary>
+        /// Actualizeaza frecventa elementului (si defazajele exprimate in functie de aceasta)
+        /// </summary>
+        /// <param name="frecventa">noua frecventa a circuitului</param>
+        public virtual void SetFrecventa(double frecventa) { }
+
+        /// <summary>
+        /// Actualizeaza tensiunea si intensitatea componentului
+        /// </summary>
+        /// <param name="tensiune">Tensiunea la bornele componentului</param>
+        public virtual void SetTensiune(double tensiune)
+        {
+            Tensiune = tensiune;
+            Intensitate = tensiune / Reactanta;
+        }
+
+        /// <summary>
+        /// Leaga in serie componentul de un alt component
+        /// </summary>
+        /// <param name="b">Alt component</param>
+        /// <returns>Gruparea in serie a celor doua componente</returns>
         public virtual Component LegareSerie(Component b)
         {
             return new CircuitSerie(new List<Component> { this, b });
         }
 
+        /// <summary>
+        /// Leaga in paralel componentul de un alt component
+        /// </summary>
+        /// <param name="b">Alt component</param>
+        /// <returns>Gruparea in paralel a celor doua componente</returns>
         public virtual Component LegareParalel(Component b)
         {
             return new CircuitParalel(new List<Component> { this, b });
@@ -88,45 +181,90 @@ namespace CircuitPro.CircuitModel
             => a.LegareParalel(b);
     }
 
+
+    /// <summary>
+    /// Reprezentarea unei rezistente
+    /// </summary>
     class Rezistenta : Component
     {
         public Rezistenta(string nume, double reactanta) : base(TipComponent.REZISTENTA, nume, 0, reactanta) { }
 
-        public override (int w, int h) Desenare(int row, int column, Canvas canvas)
+        public override Component Clone()
         {
-            canvas.Children.Add(new CircuitShapes.RezistentaDraw(this, row, column));
+            return new Rezistenta(Nume, Reactanta);
+        }
+
+        public override (int w, int h) Desenare(int row, int column, Canvas canvas, string id)
+        {
+            canvas.Children.Add(new CircuitShapes.RezistentaDraw(this, id, row, column));
             return (1, 1);
         }
     }
 
+
+    /// <summary>
+    /// Reprezentarea unei bobine
+    /// </summary>
     class Bobina : Component
     {
-        public Bobina(string nume, double inductanta, double frecventa) : base(TipComponent.BOBINA, nume, 90)
+        public double Inductanta { get; protected set; }
+
+        public Bobina(string nume, double inductanta) : base(TipComponent.BOBINA, nume, Math.PI / 2)
         {
-            Reactanta = 2 * Math.PI * frecventa * inductanta;
+            Inductanta = inductanta;
         }
 
-        public override (int w, int h) Desenare(int row, int column, Canvas canvas)
+        public override Component Clone()
         {
-            canvas.Children.Add(new CircuitShapes.BobinaDraw(this, row, column));
+            return new Bobina(Nume, Inductanta);
+        }
+
+        public override (int w, int h) Desenare(int row, int column, Canvas canvas, string id)
+        {
+            canvas.Children.Add(new CircuitShapes.BobinaDraw(this, id, row, column));
             return (1, 1);
+        }
+
+        public override void SetFrecventa(double frecventa)
+        {
+            Reactanta = 2 * frecventa * Inductanta;
         }
     }
 
+
+    /// <summary>
+    /// Reprezentarea unui condensator
+    /// </summary>
     class Condensator : Component
     {
-        public Condensator(string nume, double capacitate, double frecventa) : base(TipComponent.CONDENSATOR, nume, -90)
+        public double Capacitate { get; protected set; }
+
+        public Condensator(string nume, double capacitate) : base(TipComponent.CONDENSATOR, nume, -Math.PI / 2)
         {
-            Reactanta = 1 / (2 * Math.PI * frecventa * capacitate);
+            Capacitate = capacitate;
         }
 
-        public override (int w, int h) Desenare(int row, int column, Canvas canvas)
+        public override Component Clone()
         {
-            canvas.Children.Add(new CircuitShapes.CondensatorDraw(this, row, column));
+            return new Condensator(Nume, Capacitate);
+        }
+
+        public override (int w, int h) Desenare(int row, int column, Canvas canvas, string id)
+        {
+            canvas.Children.Add(new CircuitShapes.CondensatorDraw(this, id, row, column));
             return (1, 1);
+        }
+
+        public override void SetFrecventa(double frecventa)
+        {
+            Reactanta = 1 / (2 * frecventa * Capacitate);
         }
     }
 
+
+    /// <summary>
+    /// Reprezentarea generatorului
+    /// </summary>
     class Generator : Component
     {
         public double Frecventa { get; set; }
@@ -137,14 +275,14 @@ namespace CircuitPro.CircuitModel
             Tensiune = tensiune;
         }
 
-        public void SetTensiune(double t)
+        public override Component Clone()
         {
-            Tensiune = t;
+            return new Generator(Frecventa, Tensiune);
         }
 
-        public override (int w, int h) Desenare(int row, int column, Canvas canvas)
+        public override (int w, int h) Desenare(int row, int column, Canvas canvas, string id)
         {
-            canvas.Children.Add(new CircuitShapes.GeneratorDraw(row, column));
+            canvas.Children.Add(new CircuitShapes.GeneratorDraw(this, id, row, column));
             return (1, 1);
         }
     }

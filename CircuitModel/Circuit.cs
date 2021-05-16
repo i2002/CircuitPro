@@ -5,45 +5,115 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Text.RegularExpressions;
 using System.Windows.Controls;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace CircuitPro.CircuitModel
 {
     public class Circuit
     {
-        public double Tensiune { get; set; }
-        public double Frecventa { get; set; }
-
         public Dictionary<string, Component> componente;
         private Component circ;
-        private Generator g;
+        private readonly Generator g;
+        private string descriere;
 
-        public Circuit(double tensiune = 0, double frecventa = 0)
+        public string Descriere
         {
-            Tensiune = tensiune;
-            Frecventa = frecventa;
-            componente = new Dictionary<string, Component>();
+            get => descriere;
+            set
+            {
+                descriere = value;
+                SetCircuit(value);
+            }
+        }
 
-            componente.Add("R1", new Rezistenta("R1", 20));
+        public double Frecventa
+        {
+            get
+            {
+                return g.Frecventa;
+            }
+            set
+            {
+                g.SetFrecventa(value);
+                if (circ != null)
+                {
+                    circ.SetFrecventa(value);
+                }
+            }
+        }
+
+        public double Tensiune
+        {
+            get => g.Tensiune;
+            set
+            {
+                g.SetTensiune(value);
+                if(circ != null)
+                {
+                    circ.SetTensiune(value);
+                }
+            }
+        }
+
+        public Circuit(double tensiune = 120, double frecventa = 50, List<Component> comp = null, string desc = "")
+        {
+            // initializare date
+            g = new Generator(frecventa, tensiune);
+            
+            componente = new Dictionary<string, Component>();
+            if(comp != null)
+            {
+                comp.ForEach(c => AddComponent(c));
+            }
+            
+            Descriere = desc;
+
+/*            componente.Add("R1", new Rezistenta("R1", 20));
             componente.Add("R2", new Rezistenta("R2", 30));
             componente.Add("R3", new Rezistenta("R3", 40));
 
-            componente.Add("C1", new Condensator("C1", 10, 50));
-            componente.Add("C2", new Condensator("C2", 20, 50));
-            componente.Add("C3", new Condensator("C3", 30, 50));
+            componente.Add("C1", new Condensator("C1", 10));
+            componente.Add("C2", new Condensator("C2", 20));
+            componente.Add("C3", new Condensator("C3", 30));
 
-            componente.Add("B1", new Bobina("B1", 10, 50));
-            componente.Add("B2", new Bobina("B2", 20, 50));
-            componente.Add("B3", new Bobina("B3", 40, 50));
-
-            g = new Generator(Frecventa, Tensiune);
+            componente.Add("B1", new Bobina("B1", 10));
+            componente.Add("B2", new Bobina("B2", 20));
+            componente.Add("B3", new Bobina("B3", 40));*/
 
             /*circ = ((componente["R1"] + componente["C2"]) * componente["B2"]) + componente["R1"];*/
-            SetCircuit("R1+((R1+R2)*R3*(C3*(R1+R2)*C2+B1))+C1");
+            //SetCircuit("R1+((R1+R2)*R3*(C3*(R1+R2)*C2+B1))+C1");
+            /*Descriere = "R1+((R1+R2)*R3*(C3*(R1+R2)*C2+B1))+C1";*/
+        }
+
+        public Circuit(CircuitSerialize s) : this(s.Tensiune, s.Frecventa, s.Componente, s.Descriere) { }
+
+        public CircuitSerialize Serialize()
+        {
+            return CircuitSerialize{ Descriere = descriere, Frecventa = g.Frecventa, Tensiune = g.Tensiune, Componente = componente.Keys.ToList()}
         }
 
         public void AddComponent(Component c)
         {
+            if(c.Nume == "")
+            {
+                throw new Exception("Nume necompletat");
+            }
+
+            else if(componente.ContainsKey(c.Nume))
+            {
+                throw new Exception("Numele a fost deja folosit");
+            }
+
             componente.Add(c.Nume, c);
+        }
+
+        public ComponentTreeItem GetComponentTree()
+        {
+            if (circ == null)
+                return null;
+
+            return circ.GetTree();
         }
 
         /// <summary>
@@ -72,11 +142,10 @@ namespace CircuitPro.CircuitModel
 
                     if (!componente.ContainsKey(key))
                     {
-                        // throw nume incorect
-                        System.Console.WriteLine("nume incorect");
+                        throw new Exception($"Nume component incorect:'{key}'");
                     }
 
-                    c = componente[key];
+                    c = componente[key].Clone();
                 }
 
                 // - intrare in paranteza
@@ -88,6 +157,12 @@ namespace CircuitPro.CircuitModel
                 // - iesire din paranteza
                 else if (text[i] == ')')
                 {
+                    // prea multe paranteze de inchidere
+                    if(stComponente.Count == 1)
+                    {
+                        throw new Exception("Ecuație incompletă");
+                    }
+
                     c = stComponente[^1];
                     stComponente.RemoveAt(stComponente.Count - 1);
                 }
@@ -107,8 +182,7 @@ namespace CircuitPro.CircuitModel
                 // - caracter ilegal
                 else
                 {
-                    // throw caracter incorect
-                    System.Console.WriteLine("caracter incorect");
+                    throw new Exception($"Caracter nerecunoscut: '{text[i]}'");
                 }
 
                 // nu s-a evaluat niciun component
@@ -142,12 +216,16 @@ namespace CircuitPro.CircuitModel
             // verificare incheiere completa
             if(stComponente.Count != 1 || stOperatori.Count != 0)
             {
-                // throw malformed expression
-                System.Console.WriteLine("malformed expression");
+                throw new Exception("Ecuație incompletă");
             }
 
             // setare nou circuit
             circ = stComponente[0];
+            if (circ != null)
+            {
+                circ.SetFrecventa(Frecventa);
+                circ.SetTensiune(Tensiune);
+            }
         }
 
         public void Desenare(Canvas canvas)
@@ -158,22 +236,22 @@ namespace CircuitPro.CircuitModel
             // desenare circuit
             (int w, int h) = circ.Desenare(0, 0, canvas);
 
-            // adaugare generator
-            canvas.Children.Add(new ParalelLine(0, 0, h + 1, w));
-            canvas.Children.Add(new GeneratorDraw(h, w / 2));
-            canvas.Children.Add(new FillLine(h, 0, w / 2));
-            canvas.Children.Add(new FillLine(h, w / 2 + 1, w / 2 - 1 + w % 2));
+            // adaugare generator si legare de circuit
+            g.Desenare(h, w / 2, canvas, "-1");
+            canvas.Children.Add(new ParalelLine("-2", 0, 0, h + 1, w));
+            canvas.Children.Add(new FillLine("-1", h, 0, w / 2));
+            canvas.Children.Add(new FillLine("-1", h, w / 2 + 1, w / 2 - 1 + w % 2));
 
             // setare dimensiune interna
             ComponentDraw.SetCanvasSize(canvas, w, h);
         }
+    }
 
-        public ComponentTreeItem GetComponentTree()
-        {
-            if (circ == null)
-                return null;
-
-            return circ.GetTree();
-        }
+    public class CircuitSerialize
+    {
+        public List<Component> Componente { get; set; }
+        public double Frecventa { get; set; }
+        public double Tensiune { get; set; }
+        public string Descriere { get; set; }
     }
 }
