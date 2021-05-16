@@ -34,43 +34,46 @@ namespace CircuitPro
             {
                 case 0:
                     LabelValoare.Text = "Rezistență";
+                    UnitateMasura.Text = "Ω";
                     break;
 
                 case 1:
                     LabelValoare.Text = "Capacitate";
+                    UnitateMasura.Text = "1/π F";
                     break;
 
                 case 2:
                     LabelValoare.Text = "Inductanță";
+                    UnitateMasura.Text = "1/π H";
                     break;
             }
         }
 
         private void OkButton_Click(object sender, RoutedEventArgs e)
         {
-            this.DialogResult = true;
+            DialogResult = true;
         }
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)
         {
-            this.DialogResult = false;
+            DialogResult = false;
         }
 
         public TipComponent Tip => TipComponenCombo.SelectedIndex switch
         {
             0 => TipComponent.REZISTENTA,
             1 => TipComponent.CONDENSATOR,
-            2 => TipComponent.REZISTENTA,
+            2 => TipComponent.BOBINA,
             _ => TipComponent.REZISTENTA,
         };
 
         public string Nume => NumeComponentText.Text;
 
-        public int Valoare => int.Parse(ValoareComponentText.Text);
+        public double Valoare => ValoareComponentText.Text != "" ? double.Parse(ValoareComponentText.Text) : 0;
 
         private void ValoareComponentText_PreviewTextInput(object sender, TextCompositionEventArgs e)
         {
-            Regex regex = new Regex("[^0-9]+");
+            Regex regex = new Regex("[^0-9.]+");
             e.Handled = regex.IsMatch(e.Text);
         }
 
