@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Windows;
-using System.Text;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using System.Windows.Controls;
-using System.Linq;
 
 using CircuitPro;
 
