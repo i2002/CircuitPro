@@ -26,6 +26,10 @@ namespace CircuitPro
         private readonly double zoomMin = 0.5;
         private double zoom = 1;
 
+        // Selected item
+        Component selected = null;
+        string selectedId = "";
+
         public MainWindow()
         {
             InitializeComponent();
@@ -33,16 +37,40 @@ namespace CircuitPro
             // setare scale transform (zoom canvas)
             circuitCanvas.LayoutTransform = st = new ScaleTransform();
 
+            // initializare date initiale
+            DescriereCircutText.Text = GetCircuit().Descriere;
+
             // desenare initiala
             UpdateComponentListView();
             UpdateCircuitView();
         }
 
+
+        // ------------ Data operations --------------
         private Circuit GetCircuit()
         {
             return ((App)Application.Current).circuit;
         }
 
+        public void SetSelected(Component c, string id = "null")
+        {
+            // actualizare selectie
+            selected = c;
+            selectedId = id;
+
+            // actualizare selectie
+            if(c == null)
+            {
+                ResetSelectionView();
+            }
+            else
+            {
+                UpdateSelectionView();
+            }
+        }
+
+
+        // ------------ Update views ------------------
         private void UpdateComponentListView()
         {
             componentList.ItemsSource = GetCircuit().componente.ToList<KeyValuePair<string, Component>>();
@@ -50,47 +78,338 @@ namespace CircuitPro
 
         private void UpdateCircuitView()
         {
-            // resetare interfata
-            circuitCanvas.Children.Clear();
-            circuitTree.Items.Clear();
+            try
+            {
+                // setare structura circuit
+                GetCircuit().Descriere = DescriereCircutText.Text;
 
-            // redesenare componente
-            GetCircuit().Desenare(circuitCanvas);
-            circuitTree.Items.Add(GetCircuit().GetComponentTree());
+                // activare interfata
+                circuitTree.IsEnabled = true;
+                canvasScroll.IsEnabled = true;
+                circuitCanvas.IsEnabled = true;
+                circuitCanvas.Opacity = 1;
+
+                // resetare interfata
+                circuitCanvas.Children.Clear();
+                circuitTree.Items.Clear();
+
+                // actualizare interfata
+                GetCircuit().Desenare(circuitCanvas);
+                circuitTree.Items.Add(GetCircuit().GetComponentTree());
+            }
+
+            // capturare erori
+            catch (Exception e)
+            {
+                // dezactivare interfata
+                circuitTree.IsEnabled = false;
+                canvasScroll.IsEnabled = false;
+                circuitCanvas.IsEnabled = false;
+                circuitCanvas.Opacity = 0.5;
+
+                // afisare mesaj eroare
+                MessageBox.Show(this, e.Message, "Descriere circuit incorectă", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
+        private void UpdatePropertiesView()
+        {
+            if (selected == null)
+                return;
+
+            // reset everything
+            PropertiesDenumire.Text = "";
+            PropertiesValoare.Text = "";
+            PropertiesDefazaj.Text = "";
+            PropertiesTensiune.Text = "";
+            PropertiesIntensitate.Text = "";
+
+            // generator
+            if (selected.Tip == TipComponent.GENERATOR)
+            {
+                PropertiesDenumire.Text = selected.Nume;
+                PropertiesValoare.Text = $"Frecvență: {((Generator)selected).Frecventa} Hz";
+                PropertiesDefazaj.Text = $"Tensiune: {selected.Tensiune} V";
+                return;
+            }
+
+            // generare informatii
+            string denumire = "";
+            double valoare = selected.Reactanta;
+            string numeValoare = "Impedanță";
+            string unitateMasura = "Ω";
+            double defazaj = selected.Defazaj * 180.0 / Math.PI;
+            switch (selected.Tip)
+            {
+                case TipComponent.REZISTENTA:
+                    denumire = $"Rezistență: ";
+                    numeValoare = "Rezistență";
+                    break;
+
+                case TipComponent.CONDENSATOR:
+                    denumire = $"Condensator:";
+                    numeValoare = "Capacitate";
+                    valoare = ((Condensator)selected).Capacitate;
+                    unitateMasura = "1/π F";
+                    break;
+
+                case TipComponent.BOBINA:
+                    denumire = $"Bobină: ";
+                    numeValoare = "Inductanță";
+                    valoare = ((Bobina)selected).Inductanta;
+                    unitateMasura = "1/π H";
+                    break;
+            }
+            denumire += selected.Nume;
+
+            // actualizare proprietati
+            PropertiesDenumire.Text = denumire;
+            PropertiesValoare.Text = $"{numeValoare}: {Math.Round(valoare, 4)} {unitateMasura}";
+            PropertiesDefazaj.Text = $"Defazaj: {Math.Round(defazaj, 4)} grade";
+
+            // informatii element circuit (tensiune, intensitate)
+            if(selectedId != "null")
+            {
+                PropertiesTensiune.Text = $"Tensiune: {Math.Round(selected.Tensiune, 4)} V";
+                PropertiesIntensitate.Text = $"Intensitate: {Math.Round(selected.Intensitate, 4)} A";
+            }
+        }
+
+        private void UpdateSelectionView()
+        {
+            // actualizare proprietati
+            UpdatePropertiesView();
+
+            // actualizare selectie lista componente
+            if (selectedId != "null")
+                componentList.UnselectAll();
+
+            // actualizare selectie tree
+            if(circuitTree.Items.Count != 0 && circuitTree.Items[0] != null)
+            {
+                ((ComponentTreeItem)circuitTree.Items[0]).SetSelected(selectedId);
+            }
+
+            // actualizare selectie canvas
+            foreach (UIElement child in circuitCanvas.Children)
+            {
+                if (child is CircuitShapes.ComponentDraw elem)
+                {
+                    elem.SetSelected(elem.Id.StartsWith(selectedId));
+                }
+            }
+        }
+
+        private void ResetSelectionView()
+        {
+            // disable selection on component list
+            componentList.UnselectAll();
+
+            // disable tree selection
+            ComponentTreeItem item = (ComponentTreeItem)circuitTree.SelectedItem;
+            if (item != null)
+            {
+                item.IsSelected = false;
+            }
+
+            // disable canvas selection
+            foreach (CircuitShapes.ComponentDraw elem in circuitCanvas.Children)
+            {
+                elem.SetSelected(false);
+            }
+
+            // ascundere proprietati
+            PropertiesDenumire.Text =
+                PropertiesValoare.Text =
+                PropertiesDefazaj.Text =
+                PropertiesTensiune.Text =
+                PropertiesIntensitate.Text = "";
+        }
+
+
+        // ---------------- Toolbar handlers -------------------
         private void CommandBinding_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
             // activeaza butoanele din toolbar
             e.CanExecute = true;
         }
 
-        private void ListBox_MouseDown(object sender, MouseButtonEventArgs e)
+        private void ComponentNouToolBtn_Click(object sender, RoutedEventArgs e)
+        {
+            AddComponentBtn_Click(sender, e);
+        }
+
+        private void ModificareGeneratorBtn_Click(object sender, RoutedEventArgs e)
+        {
+            ModifyGeneratorDialog dialog = new ModifyGeneratorDialog(GetCircuit().Frecventa, GetCircuit().Tensiune);
+            if(dialog.ShowDialog() == true)
+            {
+                GetCircuit().Frecventa = dialog.Frecventa;
+                GetCircuit().Tensiune = dialog.Tensiune;
+            }
+            UpdatePropertiesView();
+        }
+
+        private void HelpToolBtn_Click(object sender, RoutedEventArgs e)
+        {
+            HelpDialog dlg = new HelpDialog();
+            dlg.Show();
+        }
+
+        private void AboutToolBtn_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBox.Show(this,
+@"Circuit Pro
+Proiectarea și vizualizarea circuitelor electrice de curent alternativ
+
+Proiect pentru susținerea examenului de atestat profesional la informatică
+(c) 2021 Butufei Tudor-David"
+                , "Despre aplicație", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+
+        // ---------------- Component list handlers ------------------
+        private void ComponentList_MouseDown(object sender, MouseButtonEventArgs e)
         {
             // reseteaza element selectat atunci cand click in afara elementelor
             HitTestResult r = VisualTreeHelper.HitTest(this, e.GetPosition(this));
 
             if (r.VisualHit.GetType() != typeof(ListBoxItem))
             {
-                componentList.UnselectAll();
+                SetSelected(null);
             }
         }
 
-        private void TreeView_MouseDown(object sender, MouseButtonEventArgs e)
+        private void ComponentList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if(e.AddedItems.Count == 0)
+            {
+                return;
+            }
+
+            Component c = ((KeyValuePair<string,Component>) e.AddedItems[0]).Value;
+            if(c != null)
+            {
+                SetSelected(c);
+            }
+        }
+
+        private void AddComponentBtn_Click(object sender, RoutedEventArgs e)
+        {
+            // creare dialog
+            AddComponentDialog dialog = new AddComponentDialog();
+            if (dialog.ShowDialog() == true)
+            {
+                // preluare date si creare component
+                Component c = null;
+                Circuit circ = ((App)Application.Current).circuit;
+                switch (dialog.Tip)
+                {
+                    case TipComponent.REZISTENTA:
+                        c = new Rezistenta(dialog.Nume, dialog.Valoare);
+                        break;
+
+                    case TipComponent.CONDENSATOR:
+                        c = new Condensator(dialog.Nume, dialog.Valoare);
+                        break;
+
+                    case TipComponent.BOBINA:
+                        c = new Bobina(dialog.Nume, dialog.Valoare);
+                        break;
+                }
+
+                // adaugare component in lista
+                try
+                {
+                    circ.AddComponent(c);
+                    UpdateComponentListView();
+                }
+                catch (Exception ex)
+                {
+                    // afisare mesaj eroare
+                    MessageBox.Show(this, ex.Message, "Date incorecte", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            };
+        }
+
+        private void RemoveComponentBtn_Click(object sender, RoutedEventArgs e)
+        {
+            if (componentList.SelectedItem == null)
+                return;
+
+            // sterge element selectat (daca exista)
+            KeyValuePair<string, Component> sel = (KeyValuePair<string, Component>)componentList.SelectedItem;
+            GetCircuit().componente.Remove(sel.Key);
+
+            // actualizare interfata
+            UpdateComponentListView();
+            UpdateCircuitView();
+            SetSelected(null);
+        }
+
+
+
+        // ----------------- Circuit input handlers ---------------------
+        private void UpdateCircuitBtn_Click(object sender, RoutedEventArgs e)
+        {
+            // actualizare circuit in functie de input utilizator
+            UpdateCircuitView();
+            SetSelected(null);
+        }
+
+        private void ResetCircuitBtn_Click(object sender, RoutedEventArgs e)
+        {
+            // reseteaza circuit
+            DescriereCircutText.Text = "";
+            UpdateCircuitView();
+            SetSelected(null);
+        }
+
+        private void DescriereCircutText_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.IsRepeat)
+            {
+                return;
+            }
+
+            // actualizare ciruit pe enter
+            if (e.Key == Key.Return)
+            {
+                UpdateCircuitBtn_Click(null, null);
+            }
+            else if (e.Key == Key.Escape)
+            {
+                ResetCircuitBtn_Click(null, null);
+            }
+        }
+
+
+        // ----------------- Circuit tree handlers ----------------------
+        private void CircuitTree_MouseDown(object sender, MouseButtonEventArgs e)
         {
             // reseteaza element selectat atunci cand click in afara elementelor
             HitTestResult r = VisualTreeHelper.HitTest(this, e.GetPosition(this));
 
-            if (r.VisualHit.GetType() != typeof(TreeViewItem))
+            if (r.VisualHit.GetType() != typeof(ComponentTreeItem))
             {
-                TreeViewItem item = (TreeViewItem)circuitTree.SelectedItem;
-                if(item != null)
-                {
-                    item.IsSelected = false;
-                }
+                SetSelected(null);
             }
         }
 
+        private void CircuitTree_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        {
+            ComponentTreeItem selected = (ComponentTreeItem)e.NewValue;
+            if (selected == null)
+            {
+                return;
+            }
+
+            // selectare element
+            SetSelected(selected.component, selected.Id);
+        }
+
+
+        // ----------------- Circuit canvas handlers -----------------------
         private void CircuitCanvas_MouseWheel(object sender, MouseWheelEventArgs e)
         {
             // actualizare zoom
@@ -114,63 +433,9 @@ namespace CircuitPro
             e.Handled = true;
         }
 
-        private void AddComponentBtn_Click(object sender, RoutedEventArgs e)
+        private void CircuitCanvas_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            // creare dialog
-            AddComponentDialog dialog = new AddComponentDialog();
-            if (dialog.ShowDialog() == true)
-            {
-                // preluare date si creare component
-                Component c = null;
-                Circuit circ = ((App)Application.Current).circuit;
-                switch (dialog.Tip)
-                {
-                    case TipComponent.REZISTENTA:
-                        c = new Rezistenta(dialog.Nume, dialog.Valoare);
-                        break;
-
-                    case TipComponent.CONDENSATOR:
-                        c = new Condensator(dialog.Nume, dialog.Valoare, circ.Frecventa);
-                        break;
-
-                    case TipComponent.BOBINA:
-                        c = new Bobina(dialog.Nume, dialog.Valoare, circ.Frecventa);
-                        break;
-                }
-
-                // adaugare component in lista
-                circ.AddComponent(c);
-                UpdateComponentListView();
-            };
-        }
-
-        private void RemoveComponentBtn_Click(object sender, RoutedEventArgs e)
-        {
-            // sterge element selectat (daca exista)
-            if (componentList.SelectedItem == null)
-                return;
-
-            KeyValuePair<string, Component> sel = (KeyValuePair<string, Component>)componentList.SelectedItem;
-            GetCircuit().componente.Remove(sel.Key);
-            UpdateComponentListView();
-        }
-
-        private void UpdateCircuitBtn_Click(object sender, RoutedEventArgs e)
-        {
-            // actualizare circuit in functie de input utilizator
-            if (DescriereCircutText.Text == "")
-                return;
-
-            GetCircuit().SetCircuit(DescriereCircutText.Text);
-            UpdateCircuitView();
-        }
-
-        private void ResetCircuitBtn_Click(object sender, RoutedEventArgs e)
-        {
-            // reseteaza circuit
-            GetCircuit().SetCircuit("");
-            DescriereCircutText.Text = "";
-            UpdateCircuitView();
+            SetSelected(null);
         }
     }
 }
