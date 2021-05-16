@@ -25,6 +25,12 @@ namespace CircuitPro
         Component selected = null;
         string selectedId = "";
 
+        // Drag to scroll canvas
+        Point clickPoint = default;
+        double initialOffsetH = 0;
+        double initialOffsetW = 0;
+        bool moved = false;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -50,7 +56,7 @@ namespace CircuitPro
             selectedId = id;
 
             // actualizare selectie
-            if(c == null)
+            if (c == null)
             {
                 ResetSelectionView();
             }
@@ -173,7 +179,7 @@ namespace CircuitPro
             PropertiesDefazaj.Text = $"Defazaj: {Math.Round(defazaj, 4)} grade";
 
             // informatii element circuit (tensiune, intensitate)
-            if(selectedId != "null")
+            if (selectedId != "null")
             {
                 PropertiesTensiune.Text = $"Tensiune: {Math.Round(selected.Tensiune, 4)} V";
                 PropertiesIntensitate.Text = $"Intensitate: {Math.Round(selected.Intensitate, 4)} A";
@@ -190,7 +196,7 @@ namespace CircuitPro
                 componentList.UnselectAll();
 
             // actualizare selectie tree
-            if(circuitTree.Items.Count != 0 && circuitTree.Items[0] != null)
+            if (circuitTree.Items.Count != 0 && circuitTree.Items[0] != null)
             {
                 ((ComponentTreeItem)circuitTree.Items[0]).SetSelected(selectedId);
             }
@@ -262,7 +268,7 @@ namespace CircuitPro
         private void ModificareGeneratorBtn_Click(object sender, RoutedEventArgs e)
         {
             ModifyGeneratorDialog dialog = new ModifyGeneratorDialog(GetCircuit().Frecventa, GetCircuit().Tensiune);
-            if(dialog.ShowDialog() == true)
+            if (dialog.ShowDialog() == true)
             {
                 GetCircuit().Frecventa = dialog.Frecventa;
                 GetCircuit().Tensiune = dialog.Tensiune;
@@ -302,13 +308,13 @@ Proiect pentru susținerea examenului de atestat profesional la informatică
 
         private void ComponentList_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if(e.AddedItems.Count == 0)
+            if (e.AddedItems.Count == 0)
             {
                 return;
             }
 
-            Component c = ((KeyValuePair<string,Component>) e.AddedItems[0]).Value;
-            if(c != null)
+            Component c = ((KeyValuePair<string, Component>)e.AddedItems[0]).Value;
+            if (c != null)
             {
                 SetSelected(c);
             }
@@ -435,11 +441,70 @@ Proiect pentru susținerea examenului de atestat profesional la informatică
             e.Handled = true;
         }
 
-        private void CircuitCanvas_MouseDown(object sender, MouseButtonEventArgs e)
+        private void CircuitCanvas_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            SetSelected(null);
+            // preluare informatii click initial
+            clickPoint = e.GetPosition(canvasScroll);
+            moved = false;
+            initialOffsetH = canvasScroll.VerticalOffset;
+            initialOffsetW = canvasScroll.HorizontalOffset;
+
+            // captura mouse
+            circuitCanvas.CaptureMouse();
         }
 
+        private void CircuitCanvas_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+             SetSelected(null);
+        }
+
+        private void CircuitCanvas_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            // dezactivare captura mouse
+            circuitCanvas.ReleaseMouseCapture();
+
+            // calcul daca s-a mutat
+            Point mousePos = e.GetPosition(canvasScroll);
+            e.Handled = Math.Abs(mousePos.X - clickPoint.X) > 0.5 || Math.Abs(mousePos.Y - clickPoint.Y) > 0.5 || moved;
+
+            // restare valoare
+            clickPoint = default;
+            moved = false;
+        }
+
+        private void CircuitCanvas_MouseMove(object sender, MouseEventArgs e)
+        {
+            if(clickPoint != default)
+            {
+                Point mousePos = e.GetPosition(canvasScroll);
+
+                // nou offset (diferenta dintre start si curent)
+                double horizOffset = clickPoint.X - mousePos.X + initialOffsetW;
+                double vertOffset = clickPoint.Y - mousePos.Y + initialOffsetH;
+
+                // setare offset
+                canvasScroll.ScrollToHorizontalOffset(horizOffset);
+                canvasScroll.ScrollToVerticalOffset(vertOffset);
+
+                // daca am depasit dimensiunea de scrolare mutam punctul de start
+                if(canvasScroll.ScrollableWidth < horizOffset || horizOffset < 0)
+                {
+                    clickPoint.X = mousePos.X;
+                    initialOffsetW = canvasScroll.HorizontalOffset;
+                    moved = true;
+                }
+
+                if(canvasScroll.ScrollableHeight < vertOffset || vertOffset < 0)
+                {
+                    clickPoint.Y = mousePos.Y;
+                    initialOffsetH = canvasScroll.VerticalOffset;
+                    moved = true;
+                }
+            }
+        }
+
+
+        // ------------- evenimente fereastra -----------------
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             e.Cancel = !((App)Application.Current).InchidereFisier();

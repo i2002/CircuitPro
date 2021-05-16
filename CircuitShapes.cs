@@ -6,6 +6,7 @@ using System.Windows.Shapes;
 using System.Windows.Controls;
 
 using CircuitPro;
+using System.Windows.Input;
 
 namespace CircuitShapes
 {
@@ -120,7 +121,7 @@ namespace CircuitShapes
         /// Eveniment selectare element
         /// </summary>
         /// <param name="e">Eveniment mouse</param>
-        override protected void OnMouseDown(System.Windows.Input.MouseButtonEventArgs e)
+        protected override void OnMouseLeftButtonUp(MouseButtonEventArgs e)
         {
             ((MainWindow)Application.Current.MainWindow).SetSelected(Component, Id);
             e.Handled = true;

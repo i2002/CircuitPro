@@ -66,7 +66,7 @@
         </ToolBarTray>
         <GroupBox x:Name="Draw" Header="Diagramă circuit" Grid.Column="1" Grid.Row="1" Margin="5,0,5,0" Padding="-5,-7,-5,-5" UseLayoutRounding="False" ScrollViewer.VerticalScrollBarVisibility="Disabled">
             <ScrollViewer x:Name="canvasScroll" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                <Canvas x:Name="circuitCanvas" MouseWheel="CircuitCanvas_MouseWheel" MouseDown="CircuitCanvas_MouseDown">
+                <Canvas x:Name="circuitCanvas" MouseWheel="CircuitCanvas_MouseWheel" MouseMove="CircuitCanvas_MouseMove" MouseLeftButtonUp="CircuitCanvas_MouseLeftButtonUp" MouseLeftButtonDown="CircuitCanvas_MouseLeftButtonDown" PreviewMouseLeftButtonUp="CircuitCanvas_PreviewMouseLeftButtonUp">
                     <Canvas.Background>
                         <DrawingBrush TileMode="Tile" Viewport="0, 0,20,20" ViewportUnits="Absolute">
                             <DrawingBrush.Drawing>
