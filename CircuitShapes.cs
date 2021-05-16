@@ -11,7 +11,7 @@ using CircuitPro;
 
 namespace CircuitShapes
 {
-    abstract class ComponentDraw : Shape
+    public abstract class ComponentDraw : Shape
     {
         protected static readonly int unit = 20;
         protected static readonly int offset = unit;
@@ -20,6 +20,7 @@ namespace CircuitShapes
 
         private readonly bool fillShape;
 
+        public string Id { get; protected set; }
         public CircuitPro.CircuitModel.Component Component { get; protected set; }
 
         /// <summary>
@@ -29,15 +30,20 @@ namespace CircuitShapes
         /// <param name="x">Randul din tablou</param>
         /// <param name="y">Coloana din tablou</param>
         /// <param name="fillShape"">Daca figura sa fie umpluta cu transparenta (primeste evenimentul de click)</param>
-        protected ComponentDraw(CircuitPro.CircuitModel.Component component, int x = 0, int y = 0, bool fillShape = true)
+        protected ComponentDraw(CircuitPro.CircuitModel.Component component, string id, int x = 0, int y = 0, bool fillShape = true)
         {
             // setari desenare
             Stroke = Brushes.Black;
             StrokeThickness = 1;
             Fill = Brushes.Transparent;
 
+            // setare tooltip
+            if(component != null)
+                ToolTip = component.Nume;
+
             // setare informatii
             this.fillShape = fillShape;
+            Id = id;
             Component = component;
 
             // setare pozitie in canvas
@@ -118,9 +124,13 @@ namespace CircuitShapes
         /// <param name="e">Eveniment mouse</param>
         override protected void OnMouseDown(System.Windows.Input.MouseButtonEventArgs e)
         {
-            //TODO: set selected
-            Console.WriteLine("Clicked");
-            Stroke = Brushes.Blue;
+            ((MainWindow)Application.Current.MainWindow).SetSelected(Component, Id);
+            e.Handled = true;
+        }
+
+        public void SetSelected(bool sel)
+        {
+            Stroke = sel ? Brushes.Blue : Brushes.Black;
         }
 
         public static void SetCanvasSize(Canvas c, int w, int h)
@@ -137,7 +147,7 @@ namespace CircuitShapes
         /// </summary>
         /// <param name="x">Randul din tablou</param>
         /// <param name="y">Coloana din tablou</param>
-        public RezistentaDraw(CircuitPro.CircuitModel.Component component, int x = 0, int y = 0) : base(component, x, y) { }
+        public RezistentaDraw(CircuitPro.CircuitModel.Component component, string id, int x = 0, int y = 0) : base(component, id, x, y) { }
 
         protected override void DrawGeometry(StreamGeometryContext context)
         {
@@ -154,7 +164,7 @@ namespace CircuitShapes
         /// </summary>
         /// <param name="x">Randul din tablou</param>
         /// <param name="y">Coloana din tablou</param>
-        public CondensatorDraw(CircuitPro.CircuitModel.Component component, int x = 0, int y = 0) : base(component, x, y) { }
+        public CondensatorDraw(CircuitPro.CircuitModel.Component component, string id, int x = 0, int y = 0) : base(component, id, x, y) { }
 
         protected override void DrawGeometry(StreamGeometryContext context)
         {
@@ -172,7 +182,7 @@ namespace CircuitShapes
         /// </summary>
         /// <param name="x">Randul din tablou</param>
         /// <param name="y">Coloana din tablou</param>
-        public BobinaDraw(CircuitPro.CircuitModel.Component component, int x = 0, int y = 0) : base(component, x, y) { }
+        public BobinaDraw(CircuitPro.CircuitModel.Component component, string id, int x = 0, int y = 0) : base(component, id, x, y) { }
 
         protected override void DrawGeometry(StreamGeometryContext context)
         {
@@ -203,7 +213,7 @@ namespace CircuitShapes
         /// </summary>
         /// <param name="x">Randul din tablou</param>
         /// <param name="y">Coloana din tablou</param>
-        public GeneratorDraw(int x = 0, int y = 0) : base(null, x, y) { }
+        public GeneratorDraw(CircuitPro.CircuitModel.Component component, string id, int x = 0, int y = 0) : base(component, id, x, y) { }
 
         protected override void DrawGeometry(StreamGeometryContext context)
         {
@@ -227,7 +237,7 @@ namespace CircuitShapes
     class FillLine : ComponentDraw
     {
         protected int len = 0;
-        public FillLine(int row, int column, int len) : base(null, row, column, false)
+        public FillLine(string id, int row, int column, int len) : base(null, id, row, column, false)
         {
             this.len = len;
         }
@@ -242,7 +252,7 @@ namespace CircuitShapes
     {
         protected int h = 0;
         protected int w = 0;
-        public ParalelLine(int row, int column, int h, int w) : base(null, row, column, false)
+        public ParalelLine(string id, int row, int column, int h, int w) : base(null, id, row, column, false)
         {
             this.h = h;
             this.w = w;
