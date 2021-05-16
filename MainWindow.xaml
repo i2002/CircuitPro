@@ -53,9 +53,9 @@
         </Grid.RowDefinitions>
         <ToolBarTray x:Name="Menu" Orientation="Horizontal" Grid.ColumnSpan="3">
             <ToolBar Height="30" ClipToBounds="True" Visibility="Visible">
-                <Button x:Name="NewToolBtn" Command="New" Content="Fișier Nou" Margin="5,0,5,0" />
-                <Button x:Name="OpenToolBtn" Command="Open" Content="Deschide" Margin="5,0,5,0" />
-                <Button x:Name="SaveToolBtn" Command="Save" Content="Salvează" Margin="5,0,5,0" />
+                <Button x:Name="NewToolBtn" Command="New" Content="Fișier Nou" Margin="5,0,5,0" Click="NewToolBtn_Click" />
+                <Button x:Name="OpenToolBtn" Command="Open" Content="Deschide" Margin="5,0,5,0" Click="OpenToolBtn_Click" />
+                <Button x:Name="SaveToolBtn" Command="Save" Content="Salvează" Margin="5,0,5,0" Click="SaveToolBtn_Click" />
                 <Separator />
                 <Button x:Name="ComponentNouToolBtn" Content="Component nou" Margin="5,0,5,0" Click="ComponentNouToolBtn_Click" />
                 <Button x:Name="ModificareGeneratorBtn" Content="Modificare generator" Margin="5,0,5,0" Click="ModificareGeneratorBtn_Click"/>

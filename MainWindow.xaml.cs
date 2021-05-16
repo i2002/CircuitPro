@@ -3,13 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 using CircuitPro.CircuitModel;
 
@@ -37,12 +32,8 @@ namespace CircuitPro
             // setare scale transform (zoom canvas)
             circuitCanvas.LayoutTransform = st = new ScaleTransform();
 
-            // initializare date initiale
-            DescriereCircutText.Text = GetCircuit().Descriere;
-
-            // desenare initiala
-            UpdateComponentListView();
-            UpdateCircuitView();
+            // initializare document
+            ((App)Application.Current).DocumentNou();
         }
 
 
@@ -69,6 +60,13 @@ namespace CircuitPro
             }
         }
 
+        public void UpdateCircuit()
+        {
+            ResetSelectionView();
+            UpdateComponentListView();
+            UpdateCircuitView(true);
+        }
+
 
         // ------------ Update views ------------------
         private void UpdateComponentListView()
@@ -76,12 +74,19 @@ namespace CircuitPro
             componentList.ItemsSource = GetCircuit().componente.ToList<KeyValuePair<string, Component>>();
         }
 
-        private void UpdateCircuitView()
+        private void UpdateCircuitView(bool reset = false)
         {
             try
             {
                 // setare structura circuit
-                GetCircuit().Descriere = DescriereCircutText.Text;
+                if (reset)
+                {
+                    DescriereCircutText.Text = GetCircuit().Descriere;
+                }
+                else
+                {
+                    GetCircuit().Descriere = DescriereCircutText.Text;
+                }
 
                 // activare interfata
                 circuitTree.IsEnabled = true;
@@ -114,15 +119,15 @@ namespace CircuitPro
 
         private void UpdatePropertiesView()
         {
-            if (selected == null)
-                return;
-
             // reset everything
             PropertiesDenumire.Text = "";
             PropertiesValoare.Text = "";
             PropertiesDefazaj.Text = "";
             PropertiesTensiune.Text = "";
             PropertiesIntensitate.Text = "";
+
+            if (selected == null)
+                return;
 
             // generator
             if (selected.Tip == TipComponent.GENERATOR)
@@ -232,6 +237,21 @@ namespace CircuitPro
         {
             // activeaza butoanele din toolbar
             e.CanExecute = true;
+        }
+
+        private void NewToolBtn_Click(object sender, RoutedEventArgs e)
+        {
+            ((App)Application.Current).DocumentNou();
+        }
+
+        private void OpenToolBtn_Click(object sender, RoutedEventArgs e)
+        {
+            ((App)Application.Current).Deschidere();
+        }
+
+        private void SaveToolBtn_Click(object sender, RoutedEventArgs e)
+        {
+            ((App)Application.Current).Salvare();
         }
 
         private void ComponentNouToolBtn_Click(object sender, RoutedEventArgs e)
