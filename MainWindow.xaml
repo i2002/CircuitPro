@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:CircuitPro"
         mc:Ignorable="d"
-        Title="CircuitPro" Height="600" Width="1000">
+        Title="CircuitPro" Height="600" Width="1000" Closing="Window_Closing">
     <Window.CommandBindings>
         <CommandBinding Command="New" CanExecute="CommandBinding_CanExecute" />
         <CommandBinding Command="Open" CanExecute="CommandBinding_CanExecute" />
@@ -57,7 +57,7 @@
                 <Button x:Name="OpenToolBtn" Command="Open" Content="Deschide" Margin="5,0,5,0" Click="OpenToolBtn_Click" />
                 <Button x:Name="SaveToolBtn" Command="Save" Content="Salvează" Margin="5,0,5,0" Click="SaveToolBtn_Click" />
                 <Separator />
-                <Button x:Name="ComponentNouToolBtn" Content="Component nou" Margin="5,0,5,0" Click="ComponentNouToolBtn_Click" />
+                <Button x:Name="ComponentNouToolBtn" Content="Componentă nouă" Margin="5,0,5,0" Click="ComponentNouToolBtn_Click" />
                 <Button x:Name="ModificareGeneratorBtn" Content="Modificare generator" Margin="5,0,5,0" Click="ModificareGeneratorBtn_Click"/>
                 <Separator />
                 <Button x:Name="HelpToolBtn" Content="Ajutor" Margin="5,0,5,0" Click="HelpToolBtn_Click" />

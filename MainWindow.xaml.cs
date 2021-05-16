@@ -320,6 +320,10 @@ Proiect pentru susținerea examenului de atestat profesional la informatică
             AddComponentDialog dialog = new AddComponentDialog();
             if (dialog.ShowDialog() == true)
             {
+                if(dialog.Valoare == 0)
+                {
+                    throw new Exception("Valoarea componentei nu poate fi nulă.");
+                }
                 // preluare date si creare component
                 Component c = null;
                 Circuit circ = ((App)Application.Current).circuit;
@@ -456,6 +460,11 @@ Proiect pentru susținerea examenului de atestat profesional la informatică
         private void CircuitCanvas_MouseDown(object sender, MouseButtonEventArgs e)
         {
             SetSelected(null);
+        }
+
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            e.Cancel = !((App)Application.Current).InchidereFisier();
         }
     }
 }

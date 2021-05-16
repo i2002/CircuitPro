@@ -72,9 +72,17 @@ namespace CircuitPro
             if(openFileDialog.ShowDialog() == true)
             {
                 // deschidere circuit
-                string json = File.ReadAllText(openFileDialog.FileName);
-                Circuit c = Circuit.Deserialize(json);
-                SetareCircuit(c, openFileDialog.FileName);
+                try
+                {
+                    string json = File.ReadAllText(openFileDialog.FileName);
+                    Circuit c = Circuit.Deserialize(json);
+                    SetareCircuit(c, openFileDialog.FileName);
+                }
+                catch (Exception e)
+                {
+                    MessageBox.Show(e.Message, "Eroare deschidere fișier", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+                
             }
         }
 
@@ -82,7 +90,7 @@ namespace CircuitPro
         {
             if (modificat)
             {
-                MessageBoxResult res = MessageBox.Show("Doriți să salvați modificările", "Închidere fișier", MessageBoxButton.YesNoCancel, MessageBoxImage.Warning, MessageBoxResult.Yes);
+                MessageBoxResult res = MessageBox.Show("Doriți să salvați modificările?", "Închidere fișier", MessageBoxButton.YesNoCancel, MessageBoxImage.Question, MessageBoxResult.Yes);
                 if(res == MessageBoxResult.Yes)
                 {
                     Salvare();

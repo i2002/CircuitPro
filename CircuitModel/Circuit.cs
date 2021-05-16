@@ -152,12 +152,12 @@ namespace CircuitPro.CircuitModel
         {
             if(c.Nume == "")
             {
-                throw new Exception("Nume necompletat");
+                throw new Exception("Numele nu a fost completat.");
             }
 
             else if(componente.ContainsKey(c.Nume))
             {
-                throw new Exception("Numele a fost deja folosit");
+                throw new Exception("Numele a fost deja folosit.");
             }
 
             componente.Add(c.Nume, c);
@@ -193,12 +193,12 @@ namespace CircuitPro.CircuitModel
                 // - alfanumeric
                 if (Char.IsLetterOrDigit(text[i]))
                 {
-                    string key = new Regex(@"^\w+").Match(text[i..]).Value;
+                    string key = new Regex(@"^\w+").Match(text[i..]).Value.Trim();
                     i += key.Length - 1;
 
                     if (!componente.ContainsKey(key))
                     {
-                        throw new Exception($"Nume component incorect:'{key}'");
+                        throw new Exception($"Nume componentă incorect:'{key}'");
                     }
 
                     c = componente[key].Clone();
