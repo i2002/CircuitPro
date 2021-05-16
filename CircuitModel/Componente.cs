@@ -285,5 +285,10 @@ namespace CircuitPro.CircuitModel
             canvas.Children.Add(new CircuitShapes.GeneratorDraw(this, id, row, column));
             return (1, 1);
         }
+
+        public override void SetFrecventa(double frecventa)
+        {
+            Frecventa = frecventa;
+        }
     }
 }

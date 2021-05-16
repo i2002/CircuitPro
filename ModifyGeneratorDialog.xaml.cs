@@ -29,6 +29,15 @@ namespace CircuitPro
             e.Handled = regex.IsMatch(e.Text);
         }
 
+        private void TextInput_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Space)
+            {
+                e.Handled = true;
+            }
+            base.OnPreviewKeyDown(e);
+        }
+
         private void ApplyBtn_Click(object sender, RoutedEventArgs e)
         {
             DialogResult = true;
