@@ -1,4 +1,4 @@
-﻿using CircuitShapes;
+using CircuitShapes;
 
 using System;
 using System.Collections.Generic;
@@ -66,7 +66,7 @@ namespace CircuitPro.CircuitModel
             componente = new Dictionary<string, Component>();
             if(comp != null)
             {
-                comp.ForEach(c => componente.Add(c.Nume, c));
+                comp.ForEach(c => AddComponent(c));
             }
             
             // initializare descriere
@@ -150,18 +150,47 @@ namespace CircuitPro.CircuitModel
 
         public void AddComponent(Component c)
         {
-            if(c.Nume == "")
+            componente.Add(c.Nume, c);
+        }
+
+        public void AddComponent(TipComponent tip, string nume, double valoare)
+        {
+            // validare date
+            if (nume == "")
             {
                 throw new Exception("Numele nu a fost completat.");
             }
 
-            else if(componente.ContainsKey(c.Nume))
+            if (componente.ContainsKey(nume))
             {
                 throw new Exception("Numele a fost deja folosit.");
             }
 
-            componente.Add(c.Nume, c);
+            if (valoare == 0)
+            {
+                throw new Exception("Valoarea componentei nu poate fi nulă.");
+            }
+
+            // creare component
+            Component c = null;
+            switch (tip)
+            {
+                case TipComponent.REZISTENTA:
+                    c = new Rezistenta(nume, valoare);
+                    break;
+
+                case TipComponent.CONDENSATOR:
+                    c = new Condensator(nume, valoare);
+                    break;
+
+                case TipComponent.BOBINA:
+                    c = new Bobina(nume, valoare);
+                    break;
+            }
+
+            // adaugare component creat
             GetApp().SetModificat();
+            AddComponent(c);
         }
 
         public ComponentTreeItem GetComponentTree()

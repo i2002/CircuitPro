@@ -320,32 +320,10 @@ Proiect pentru susținerea examenului de atestat profesional la informatică
             AddComponentDialog dialog = new AddComponentDialog();
             if (dialog.ShowDialog() == true)
             {
-                if(dialog.Valoare == 0)
-                {
-                    throw new Exception("Valoarea componentei nu poate fi nulă.");
-                }
-                // preluare date si creare component
-                Component c = null;
-                Circuit circ = ((App)Application.Current).circuit;
-                switch (dialog.Tip)
-                {
-                    case TipComponent.REZISTENTA:
-                        c = new Rezistenta(dialog.Nume, dialog.Valoare);
-                        break;
-
-                    case TipComponent.CONDENSATOR:
-                        c = new Condensator(dialog.Nume, dialog.Valoare);
-                        break;
-
-                    case TipComponent.BOBINA:
-                        c = new Bobina(dialog.Nume, dialog.Valoare);
-                        break;
-                }
-
                 // adaugare component in lista
                 try
                 {
-                    circ.AddComponent(c);
+                    GetCircuit().AddComponent(dialog.Tip, dialog.Nume, dialog.Valoare);
                     UpdateComponentListView();
                 }
                 catch (Exception ex)
