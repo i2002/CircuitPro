@@ -1,0 +1,55 @@
+﻿<Window x:Class="CircuitPro.HelpDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:CircuitPro"
+        mc:Ignorable="d"
+        Title="HelpDialog" Width="800"
+    xmlns:System="clr-namespace:System;assembly=System.Runtime" SizeToContent="Height">
+    <Window.Resources>
+        <System:String x:Key="HelpCircuit">În lista din stânga pot fi actualizate componentele (rezistențe, condensatori, bobine) care sunt folosite pentru descrierea circuitului</System:String>
+        <System:String x:Key="HelpDescriere" xml:space="preserve">În partea de jos se definește structura circuitului folosind o ecuație circuit. Aceasta este formată din:
+- numele componentelor adăugate la pasul anterior
+- operatorii '+' și '*' pentru combinarea în serie, respectiv în paralel a componentelor
+- parenteze '(', ')' pentru gruparea mai multor componente
+Evaluarea se face de la stânga la dreapta și '*' nu are ordine de precedență față de '+' (spre exemplu "R1+R2*R3" va lega R1 cu R2 în serie și rezultatul în paralel cu R3, nefiind echivalent cu "R1+(R2*R3)")
+Exemplu:</System:String>
+        <System:String x:Key="HelpModificareCircuit">Pentru a aplica modificările se folosește butonul "Actualizează" (sau tasta Enter). Pentru a șterge tot se folosește butonul "Resetează" (sau tasta Escape).</System:String>
+        <System:String x:Key="HelpSetariCircuit">Pe lângă structura sa, circuitul mai este definit de frecvența și tensiunea generatorului său. Acestea pot fi setate din toolbar, de la butonul "Modificare generator"</System:String>
+        <System:String x:Key="HelpVizualizareCircuit" xml:space="preserve">După finalizarea pasului anterior, în partea centrală apare diagrama circuitului, iar în arborele din dreapta se văd componentele acestuia.
+Se poate selecta un element apăsând pe acesta în diagramă sau în arborele de elemente. Se pot vizualiza informațiile despre elementul selectat în colțul drapta jos, la secțiunea "Proprietăți".
+Se poate mări sau micșora diagrama folosind rotița de la mouse deasupra acesteia.</System:String>
+        <System:String x:Key="HelpFisiere">Din toolbar, cu ajutorul butoanelor "Salvare" și "Deschidere", circuitul poate fi salvat într-un fișier pentru a putea fi deschis mai târziu. Butonul "Nou" crează un nou circuit necompletat.</System:String>
+
+        <Style x:Key="SectionHeader" TargetType="TextBlock">
+            <Setter Property="Margin" Value="10 15 10 0"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+        </Style>
+
+        <Style x:Key="SectionParagraph" TargetType="TextBlock">
+            <Setter Property="Margin" Value="10 5 10 0"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+    </Window.Resources>
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Orientation="Vertical" ScrollViewer.VerticalScrollBarVisibility="Auto" CanVerticallyScroll="True">
+            <TextBlock Style="{StaticResource SectionHeader}" Text="Componente circuit"/>
+            <TextBlock Style="{StaticResource SectionParagraph}"  Text="{DynamicResource HelpCircuit}"/>
+            <TextBlock Style="{StaticResource SectionHeader}" Text="Descriere circuit"/>
+            <TextBlock Style="{StaticResource SectionParagraph}" Text="{DynamicResource HelpDescriere}"/>
+            <TextBlock Style="{StaticResource SectionParagraph}" Text="(R1*R2*(R3+C2))+B1+R2" FontFamily="Source Code Pro" FontStyle="Italic" FontSize="13"/>
+            <TextBlock Style="{StaticResource SectionParagraph}" Text="{DynamicResource HelpModificareCircuit}"/>
+            <TextBlock Style="{StaticResource SectionHeader}" Text="Setări circuit" />
+            <TextBlock Style="{StaticResource SectionParagraph}" Text="{DynamicResource HelpSetariCircuit}"/>
+            <TextBlock Style="{StaticResource SectionHeader}" Text="Vizualizare circuit" />
+            <TextBlock Style="{StaticResource SectionParagraph}" Text="{DynamicResource HelpVizualizareCircuit}"/>
+            <TextBlock Style="{StaticResource SectionHeader}" Text="Salvare și deschidere fișiere" />
+            <TextBlock Style="{StaticResource SectionParagraph}" Text="{DynamicResource HelpFisiere}"/>
+            <Button x:Name="CloseBtn" Content="Închide" Margin="20,20,20,24" IsDefault="True" Click="CloseBtn_Click"/>
+        </StackPanel>
+    </ScrollViewer>
+</Window>
