@@ -1,4 +1,4 @@
-using CircuitShapes;
+﻿using CircuitShapes;
 
 using System;
 using System.Collections.Generic;
@@ -283,6 +283,11 @@ namespace CircuitPro.CircuitModel
                 }
                 else
                 {
+                    if(stOperatori.Count == 0)
+                    {
+                        throw new Exception("Ecuație incompletă");
+                    }
+
                     switch(stOperatori.Peek())
                     {
                         case '+':
@@ -331,7 +336,7 @@ namespace CircuitPro.CircuitModel
             ComponentDraw.SetCanvasSize(canvas, w, h);
         }
 
-        private App GetApp()
+        private static App GetApp()
         {
             return (App)Application.Current;
         }
