@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:CircuitPro"
         mc:Ignorable="d"
-        Title="HelpDialog" Width="800"
+        Title="Ajutor" Width="800"
     xmlns:System="clr-namespace:System;assembly=System.Runtime" SizeToContent="Height">
     <Window.Resources>
         <System:String x:Key="HelpCircuit">În lista din stânga pot fi actualizate componentele (rezistențe, condensatori, bobine) care sunt folosite pentru descrierea circuitului</System:String>

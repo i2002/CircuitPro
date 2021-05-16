@@ -5,13 +5,13 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:CircuitPro"
         mc:Ignorable="d"
-        Title="Modificare generator" Height="220" Width="400">
+        Title="Modificare generator" Width="400" SizeToContent="Height">
     <StackPanel>
         <Label Content="Frecvență (Hz)" Margin="10,0,10,0" />
         <TextBox x:Name="FrecventaText" TextWrapping="Wrap" Margin="10,0,10,0" PreviewTextInput="VerificareInputNumar"/>
         <Label Content="Tensiune (V)" Margin="10,10,10,0" />
         <TextBox x:Name="TensiuneText" TextWrapping="Wrap" Margin="10,0,10,0"/>
         <Button x:Name="ApplyBtn" Content="Aplică" Margin="20,20,20,0" Click="ApplyBtn_Click"/>
-        <Button x:Name="CancelBtn" Content="Renunță" Margin="20,10,20,0" Click="CancelBtn_Click"/>
+        <Button x:Name="CancelBtn" Content="Renunță" Margin="20,10,20,20" Click="CancelBtn_Click"/>
     </StackPanel>
 </Window>

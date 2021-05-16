@@ -20,10 +20,10 @@
         </ComboBox>
 
         <TextBlock Margin="5,56,5,0" Text="Nume" TextWrapping="Wrap" VerticalAlignment="Top"/>
-        <TextBox x:Name="NumeComponentText" Margin="5,76,5,0" Text="" TextWrapping="Wrap" VerticalAlignment="Top" Height="22" FontSize="14" PreviewTextInput="NumeComponentText_PreviewTextInput"/>
+        <TextBox x:Name="NumeComponentText" Margin="5,76,5,0" Text="" TextWrapping="Wrap" VerticalAlignment="Top" Height="22" FontSize="14" PreviewTextInput="NumeComponentText_PreviewTextInput" PreviewKeyDown="TextInput_PreviewKeyDown"/>
 
         <TextBlock x:Name="LabelValoare" Margin="5,110,5,0" Text="Rezistență" TextWrapping="Wrap" VerticalAlignment="Top" Height="16"/>
-        <TextBox x:Name="ValoareComponentText" Text="0" TextWrapping="Wrap" VerticalAlignment="Top" Margin="5,132,40,0" ClipToBounds="True" Height="22" TextAlignment="Left" FontSize="14" PreviewTextInput="ValoareComponentText_PreviewTextInput"/>
+        <TextBox x:Name="ValoareComponentText" Text="0" TextWrapping="Wrap" VerticalAlignment="Top" Margin="5,132,40,0" ClipToBounds="True" Height="22" TextAlignment="Left" FontSize="14" PreviewTextInput="ValoareComponentText_PreviewTextInput" PreviewKeyDown="TextInput_PreviewKeyDown"/>
         <TextBlock x:Name="UnitateMasura" HorizontalAlignment="Right" Margin="0,134,5,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="35" TextAlignment="Right" Height="18" LineHeight="22" Text="Ω"/>
 
         <Button x:Name="OkButton" Content="Adaugă" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,10,5" Height="20" Grid.Row="1" Width="70" Click="OkButton_Click"/>

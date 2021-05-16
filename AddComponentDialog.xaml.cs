@@ -60,7 +60,7 @@ namespace CircuitPro
             _ => TipComponent.REZISTENTA,
         };
 
-        public string Nume => NumeComponentText.Text;
+        public string Nume => NumeComponentText.Text.Trim();
 
         public double Valoare => ValoareComponentText.Text != "" ? double.Parse(ValoareComponentText.Text) : 0;
 
@@ -72,8 +72,17 @@ namespace CircuitPro
 
         private void NumeComponentText_PreviewTextInput(object sender, TextCompositionEventArgs e)
         {
-            Regex regex = new Regex("\\W+");
+            Regex regex = new Regex(@"[^\w]+");
             e.Handled = regex.IsMatch(e.Text);
+        }
+
+        private void TextInput_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Space)
+            {
+                e.Handled = true;
+            }
+            base.OnPreviewKeyDown(e);
         }
     }
 }
