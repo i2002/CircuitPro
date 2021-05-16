@@ -2,8 +2,12 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
+    <Authors>Butufei Tudor-David</Authors>
+    <Copyright>(c) 2021 Butufei Tudor-David</Copyright>
+    <Description>Proiectarea și vizualizarea circuitelor electrice de curent alternativ
+Proiect pentru susținerea examenului de atestat profesional la informatică</Description>
   </PropertyGroup>
 
 </Project>
