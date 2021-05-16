@@ -18,9 +18,9 @@ Exemplu:</System:String>
         <System:String x:Key="HelpModificareCircuit">Pentru a aplica modificările se folosește butonul "Actualizează" (sau tasta Enter). Pentru a șterge tot se folosește butonul "Resetează" (sau tasta Escape).</System:String>
         <System:String x:Key="HelpSetariCircuit">Pe lângă structura sa, circuitul mai este definit de frecvența și tensiunea generatorului său. Acestea pot fi setate din toolbar, de la butonul "Modificare generator"</System:String>
         <System:String x:Key="HelpVizualizareCircuit" xml:space="preserve">După finalizarea pasului anterior, în partea centrală apare diagrama circuitului, iar în arborele din dreapta se văd componentele acestuia.
-Se poate selecta un element apăsând pe acesta în diagramă sau în arborele de elemente. Se pot vizualiza informațiile despre elementul selectat în colțul drapta jos, la secțiunea "Proprietăți".
-Se poate mări sau micșora diagrama folosind rotița de la mouse deasupra acesteia.</System:String>
-        <System:String x:Key="HelpFisiere">Din toolbar, cu ajutorul butoanelor "Salvare" și "Deschidere", circuitul poate fi salvat într-un fișier pentru a putea fi deschis mai târziu. Butonul "Nou" crează un nou circuit necompletat.</System:String>
+Se poate selecta un element apăsând pe acesta în diagramă sau în arborele de elemente. Se pot vizualiza informațiile despre elementul selectat în colțul drapta jos, la secțiunea "Detalii".
+Se poate mări sau micșora diagrama folosind rotița de la mouse deasupra diagramei.</System:String>
+        <System:String x:Key="HelpFisiere">Din toolbar, cu ajutorul butoanelor "Salvare" și "Deschidere", circuitul poate fi salvat într-un fișier pentru a putea fi deschis mai târziu. Butonul "Nou" crează un circuit necompletat.</System:String>
 
         <Style x:Key="SectionHeader" TargetType="TextBlock">
             <Setter Property="Margin" Value="10 15 10 0"/>
