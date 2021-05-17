@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:CircuitPro"
         mc:Ignorable="d"
-        Title="Adaugă component" Height="250" Width="350" ResizeMode="CanMinimize" WindowStartupLocation="CenterOwner">
+        Title="Adaugare component" Height="250" Width="350" ResizeMode="CanMinimize" WindowStartupLocation="CenterOwner">
     <Grid Margin="5,5,5,5">
         <Grid.RowDefinitions>
             <RowDefinition/>
