@@ -109,6 +109,11 @@ namespace CircuitPro
             ActualizareTitlu();
         }
 
+        public bool CanDocumentNou()
+        {
+            return modificat || numeFisier != "";
+        }
+
 
         // ----------- Gestiune date ------------
         private void SetareCircuit(Circuit c = null, string fileName = "")

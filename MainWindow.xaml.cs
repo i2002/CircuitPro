@@ -242,7 +242,15 @@ namespace CircuitPro
         private void CommandBinding_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
             // activeaza butoanele din toolbar
-            e.CanExecute = true;
+            RoutedCommand command = e.Command as RoutedCommand;
+            if (command != null && command == ApplicationCommands.New)
+            {
+                e.CanExecute = ((App)Application.Current).CanDocumentNou();
+            }
+            else
+            {
+                e.CanExecute = true;
+            }
         }
 
         private void NewToolBtn_Click(object sender, RoutedEventArgs e)
